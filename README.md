@@ -2,6 +2,7 @@
 
 A comprehensive iOS demo application showcasing Apple's MetricKit framework for collecting and analyzing app performance metrics.
 
+
 ## 🎯 What is MetricKit?
 
 MetricKit is Apple's framework that provides standardized, privacy-preserving metrics about your app's performance and power usage. It collects data on-device and delivers aggregated metrics to help you understand how your app performs in real-world conditions.
@@ -54,6 +55,20 @@ MetricKit is Apple's framework that provides standardized, privacy-preserving me
    - WiFi upload/download
    - Cellular data usage
    - Network efficiency analysis
+
+
+## 🆕 July 2025 UI/UX Update
+
+- Redesigned dashboard with large, multi-row action buttons for easier access and better readability
+- Animated refresh loader in navigation bar for clear feedback during data updates
+- Increased chart heights and improved layout for better data visualization
+- Enhanced touch feedback and visual polish for all controls
+
+## 🛠️ Implementation Details
+
+- All dashboard actions are now grouped in clear sections: Simulation, Analysis, and Data Controls
+- Refresh logic prevents duplicate loads and shows a loading spinner in the navigation bar
+- Charts and stats update smoothly with new data
 
 ## 📱 App Features
 
