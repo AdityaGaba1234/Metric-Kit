@@ -5,7 +5,7 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
-        customizeAppearance()
+     //   customizeAppearance()
     }
     
     private func setupTabs() {
