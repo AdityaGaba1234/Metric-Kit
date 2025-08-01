@@ -1,566 +1,3 @@
-//import Foundation
-//import MetricKit
-//
-//final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
-//    static let shared = MetricKitManager()
-//
-//    // Store all received payloads
-//    private(set) var allPayloads: [MXMetricPayload] = []
-//    private(set) var totalPayloadsReceived = 0
-//
-//    // Observers for UI updates
-//    var onPayloadReceived: ((MXMetricPayload) -> Void)?
-//    var onLogUpdate: ((String) -> Void)?
-//
-//    private override init() {
-//        super.init()
-//        MXMetricManager.shared.add(self)
-//        logEvent("🚀 MetricKit Manager initialized")
-//    }
-//
-//    // MARK: - MXMetricManagerSubscriber
-//    func didReceive(_ payloads: [MXMetricPayload]) {
-//        totalPayloadsReceived += payloads.count
-//        allPayloads.append(contentsOf: payloads)
-//
-//        for payload in payloads {
-//            onPayloadReceived?(payload)
-//            logDetailedPayload(payload)
-//        }
-//    }
-//
-//    // MARK: - Public Methods
-//    func logEvent(_ message: String) {
-//        let timestamp = DateFormatter.shortTime.string(from: Date())
-//        let logMessage = "[\(timestamp)] \(message)\n"
-//        onLogUpdate?(logMessage)
-//        print(logMessage)
-//    }
-//
-//    func clearLogs() {
-//        onLogUpdate?("🧹 Logs cleared\n\n")
-//    }
-//
-//    func getMetricsSummary() -> String {
-//        var summary = "📊 METRICS SUMMARY:\n"
-//        summary += "• Total Payloads: \(totalPayloadsReceived)\n"
-//        summary += "• Stored Payloads: \(allPayloads.count)\n"
-//
-//        if let lastPayload = allPayloads.last {
-//            summary += "• Last Received: \(DateFormatter.shortTime.string(from: Date()))\n"
-//
-//            if let cpuMetrics = lastPayload.cpuMetrics {
-//                summary += "• CPU Time: \(formatDuration(cpuMetrics.cumulativeCPUTime))\n"
-//            }
-//            if let memoryMetrics = lastPayload.memoryMetrics {
-//                summary += "• Peak Memory: \(formatMemory(memoryMetrics.peakMemoryUsage))\n"
-//            }
-//        }
-//
-//        return summary + "\n"
-//    }
-//
-//    // MARK: - Private Methods
-//    private func logDetailedPayload(_ payload: MXMetricPayload) {
-//        var log = "📦 === NEW METRIC PAYLOAD ===\n"
-//        log += "🕐 Timestamp: \(DateFormatter.detailed.string(from: Date()))\n"
-//
-//        // CPU Metrics
-//        if let cpuMetrics = payload.cpuMetrics {
-//            log += "\n🖥️ CPU METRICS:\n"
-//            log += "   • CPU Time: \(formatDuration(cpuMetrics.cumulativeCPUTime))\n"
-//            log += "   • Instructions: \(cpuMetrics.cumulativeCPUInstructions.value) \(cpuMetrics.cumulativeCPUInstructions.unit)\n"
-//        }
-//
-//        // Memory Metrics
-//        if let memoryMetrics = payload.memoryMetrics {
-//            log += "\n💾 MEMORY METRICS:\n"
-//            log += "   • Peak Usage: \(formatMemory(memoryMetrics.peakMemoryUsage))\n"
-//            log += "   • Avg Suspended: \(formatMemory(memoryMetrics.averageSuspendedMemory.averageMeasurement))\n"
-//        }
-//
-//        // Network Metrics
-//        if let networkMetrics = payload.networkTransferMetrics {
-//            log += "\n🌐 NETWORK METRICS:\n"
-//            log += "   • WiFi Down: \(formatMemory(networkMetrics.cumulativeWifiDownload))\n"
-//            log += "   • Cellular Down: \(formatMemory(networkMetrics.cumulativeCellularDownload))\n"
-//        }
-//
-//        // Launch Metrics with Histograms
-//        if let launchMetrics = payload.applicationLaunchMetrics {
-//            log += "\n🚀 LAUNCH METRICS:\n"
-//            let histogram = launchMetrics.histogrammedTimeToFirstDraw
-//            log += "   • Launch Histogram: \(histogram.totalBucketCount) buckets\n"
-//
-//            let enumerator = histogram.bucketEnumerator
-//            var bucketFound = false
-//            while let bucket = enumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
-//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) launches\n"
-//                bucketFound = true
-//            }
-//            if !bucketFound {
-//                log += "     - No histogram data yet (need more app launches)\n"
-//            }
-//        }
-//
-//        // Responsiveness Metrics
-//        if let responsivenessMetrics = payload.applicationResponsivenessMetrics {
-//            log += "\n⚡ RESPONSIVENESS:\n"
-//            let hangHistogram = responsivenessMetrics.histogrammedApplicationHangTime
-//            log += "   • Hang Histogram: \(hangHistogram.totalBucketCount) buckets\n"
-//
-//            let enumerator = hangHistogram.bucketEnumerator
-//            while let bucket = enumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
-//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) hangs\n"
-//            }
-//        }
-//
-//        log += "\n" + String(repeating: "=", count: 50) + "\n\n"
-//        onLogUpdate?(log)
-//    }
-////    private func loadDetailedPayload(_ payload: MXMetricPayload){
-////
-////    }
-//    private func formatDuration(_ measurement: Measurement<UnitDuration>) -> String {
-//        let seconds = measurement.converted(to: .seconds).value
-//        if seconds < 60 {
-//            return String(format: "%.2fs", seconds)
-//        } else if seconds < 3600 {
-//            return String(format: "%.1fm", seconds / 60)
-//        } else {
-//            return String(format: "%.1fh", seconds / 3600)
-//        }
-//    }
-//
-//
-//
-//    private func formatMemory(_ measurement: Measurement<UnitInformationStorage>) -> String {
-//        let bytes = measurement.converted(to: .bytes).value
-//        let formatter = ByteCountFormatter()
-//        formatter.countStyle = .memory
-//        return formatter.string(fromByteCount: Int64(bytes))
-//    }
-//
-//    deinit {
-//        MXMetricManager.shared.remove(self)
-//    }
-//}
-//
-//// MARK: - Extensions
-//extension DateFormatter {
-//    static let shortTime: DateFormatter = {
-//        let formatter = DateFormatter()
-//        formatter.timeStyle = .medium
-//        return formatter
-//    }()
-//
-//    static let detailed: DateFormatter = {
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .short
-//        formatter.timeStyle = .medium
-//        return formatter
-//    }()
-//}
-
-//import Foundation
-//import MetricKit
-//
-//final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
-//    static let shared = MetricKitManager()
-//
-//    // Store all received payloads
-//    private(set) var allPayloads: [MXMetricPayload] = []
-//    private(set) var allDiagnostics: [MXDiagnosticPayload] = []
-//    private(set) var totalPayloadsReceived = 0
-//    private(set) var totalDiagnosticsReceived = 0
-//
-//    // Crash and diagnostic storage
-//    private(set) var crashes: [MXCrashDiagnostic] = []
-//    private(set) var hangs: [MXHangDiagnostic] = []
-//    private(set) var cpuExceptions: [MXCPUExceptionDiagnostic] = []
-//    private(set) var diskExceptions: [MXDiskWriteExceptionDiagnostic] = []
-//
-//    // Observers for UI updates
-//    var onPayloadReceived: ((MXMetricPayload) -> Void)?
-//    var onDiagnosticReceived: ((MXDiagnosticPayload) -> Void)?
-//    var onLogUpdate: ((String) -> Void)?
-//    var onCrashDetected: ((MXCrashDiagnostic) -> Void)?
-//    var onHangDetected: ((MXHangDiagnostic) -> Void)?
-//
-//    private override init() {
-//        super.init()
-//        MXMetricManager.shared.add(self)
-//        logEvent("🚀 MetricKit Manager initialized with crash analytics")
-//    }
-//
-//    // MARK: - MXMetricManagerSubscriber
-//
-//    /// Regular metrics delivery (performance data)
-//    func didReceive(_ payloads: [MXMetricPayload]) {
-//        totalPayloadsReceived += payloads.count
-//        allPayloads.append(contentsOf: payloads)
-//
-//        for payload in payloads {
-//            onPayloadReceived?(payload)
-//            logDetailedPayload(payload)
-//        }
-//    }
-//
-//    /// Diagnostic delivery (crash reports, hangs, exceptions)
-//    func didReceive(_ payloads: [MXDiagnosticPayload]) {
-//        totalDiagnosticsReceived += payloads.count
-//        allDiagnostics.append(contentsOf: payloads)
-//
-//        for payload in payloads {
-//            onDiagnosticReceived?(payload)
-//            processDiagnosticPayload(payload)
-//        }
-//    }
-//
-//    // MARK: - Public Methods
-//    func logEvent(_ message: String) {
-//        let timestamp = DateFormatter.shortTime.string(from: Date())
-//        let logMessage = "[\(timestamp)] \(message)\n"
-//        onLogUpdate?(logMessage)
-//        print(logMessage)
-//    }
-//
-//    func clearLogs() {
-//        onLogUpdate?("🧹 Logs cleared\n\n")
-//    }
-//
-//    func getMetricsSummary() -> String {
-//        var summary = "📊 METRICS SUMMARY:\n"
-//        summary += "• Total Payloads: \(totalPayloadsReceived)\n"
-//        summary += "• Total Diagnostics: \(totalDiagnosticsReceived)\n"
-//        summary += "• Stored Payloads: \(allPayloads.count)\n"
-//        summary += "• Crashes Detected: \(crashes.count)\n"
-//        summary += "• Hangs Detected: \(hangs.count)\n"
-//        summary += "• CPU Exceptions: \(cpuExceptions.count)\n"
-//        summary += "• Disk Exceptions: \(diskExceptions.count)\n"
-//
-//        if let lastPayload = allPayloads.last {
-//            summary += "\n📈 LATEST METRICS:\n"
-//            summary += "• Last Received: \(DateFormatter.shortTime.string(from: Date()))\n"
-//
-//            if let cpuMetrics = lastPayload.cpuMetrics {
-//                summary += "• CPU Time: \(formatDuration(cpuMetrics.cumulativeCPUTime))\n"
-//            }
-//            if let memoryMetrics = lastPayload.memoryMetrics {
-//                summary += "• Peak Memory: \(formatMemory(memoryMetrics.peakMemoryUsage))\n"
-//            }
-//        }
-//
-//        return summary + "\n"
-//    }
-//
-//    func getCrashReport() -> String {
-//        var report = "💥 CRASH ANALYTICS REPORT:\n"
-//        report += String(repeating: "=", count: 40) + "\n"
-//
-//        if crashes.isEmpty && hangs.isEmpty && cpuExceptions.isEmpty && diskExceptions.isEmpty {
-//            report += "✅ No crashes or exceptions detected\n"
-//            report += "🎉 Your app is running smoothly!\n"
-//            return report
-//        }
-//
-//        // Crash Reports
-//        if !crashes.isEmpty {
-//            report += "\n💥 CRASHES (\(crashes.count) total):\n"
-//            for (index, crash) in crashes.enumerated() {
-//                report += "\n📍 Crash #\(index + 1):\n"
-//                report += "• Exception Type: \(crash.exceptionType?.description ?? "Unknown")\n"
-//                report += "• Exception Code: \(crash.exceptionCode?.description ?? "Unknown")\n"
-//                report += "• Signal: \(crash.signal?.description ?? "Unknown")\n"
-//                report += "• Termination Reason: \(crash.terminationReason ?? "Unknown")\n"
-//                report += "• Virtual Memory Region: \(crash.virtualMemoryRegionInfo ?? "Unknown")\n"
-//
-//                // Call stack handling
-//                let callStack = crash.callStackTree
-//                report += "• Call Stack Available: Yes\n"
-//                report += "• Stack Info: \(callStack.jsonRepresentation())\n"
-//
-//                report += "• Timestamp: \(DateFormatter.detailed.string(from: Date()))\n"
-//            }
-//        }
-//
-//        // Hang Reports
-//        if !hangs.isEmpty {
-//            report += "\n🔒 HANGS (\(hangs.count) total):\n"
-//            for (index, hang) in hangs.enumerated() {
-//                report += "\n📍 Hang #\(index + 1):\n"
-//                report += "• Duration: \(formatDuration(hang.hangDuration))\n"
-//
-//                // Call stack handling
-//                let callStack = hang.callStackTree
-//                report += "• Call Stack Available: Yes\n"
-//                report += "• Stack Info: \(callStack.jsonRepresentation())\n"
-//
-//                report += "• Timestamp: \(DateFormatter.detailed.string(from: Date()))\n"
-//            }
-//        }
-//
-//        // CPU Exception Reports
-//        if !cpuExceptions.isEmpty {
-//            report += "\n🔥 CPU EXCEPTIONS (\(cpuExceptions.count) total):\n"
-//            for (index, exception) in cpuExceptions.enumerated() {
-//                report += "\n📍 CPU Exception #\(index + 1):\n"
-//                report += "• Total CPU Time: \(formatDuration(exception.totalCPUTime))\n"
-//                report += "• Total Sampled Time: \(formatDuration(exception.totalSampledTime))\n"
-//
-//                // Call stack handling
-//                let callStack = exception.callStackTree
-//                report += "• Call Stack Available: Yes\n"
-//                report += "• Stack Info: \(callStack.jsonRepresentation())\n"
-//            }
-//        }
-//
-//        // Disk Exception Reports
-//        if !diskExceptions.isEmpty {
-//            report += "\n💽 DISK EXCEPTIONS (\(diskExceptions.count) total):\n"
-//            for (index, exception) in diskExceptions.enumerated() {
-//                report += "\n📍 Disk Exception #\(index + 1):\n"
-//                report += "• Total Writes Caused: \(formatMemory(exception.totalWritesCaused))\n"
-//
-//                // Call stack handling
-//                let callStack = exception.callStackTree
-//                report += "• Call Stack Available: Yes\n"
-//                report += "• Stack Info: \(callStack.jsonRepresentation())\n"
-//            }
-//        }
-//
-//        return report
-//    }
-//
-//    func simulateCrash() {
-//        logEvent("💀 Simulating crash for testing...")
-//        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 1) {
-//            // This will cause a crash that MetricKit will detect
-//            let array: [Int] = []
-//            let _ = array[10] // Index out of bounds crash
-//        }
-//    }
-//
-//    func simulateHang() {
-//        logEvent("🔒 Simulating hang for testing...")
-//        DispatchQueue.main.async {
-//            // This will cause a main thread hang
-//            Thread.sleep(forTimeInterval: 5)
-//        }
-//    }
-//
-//    func simulateCPUException() {
-//        logEvent("🔥 Simulating CPU exception...")
-//        DispatchQueue.global(qos: .userInitiated).async {
-//            // CPU intensive task that might trigger CPU exception
-//            var result = 0.0
-//            for i in 0..<50_000_000 {
-//                result += sin(Double(i)) * cos(Double(i)) * tan(Double(i))
-//            }
-//            print("CPU intensive task result: \(result)")
-//        }
-//    }
-//
-//    // MARK: - Private Methods
-//
-//    private func processDiagnosticPayload(_ payload: MXDiagnosticPayload) {
-//        var log = "🚨 === DIAGNOSTIC PAYLOAD RECEIVED ===\n"
-//        log += "🕐 Timestamp: \(DateFormatter.detailed.string(from: Date()))\n"
-//
-//        // Process Crashes
-//        if let crashDiagnostics = payload.crashDiagnostics {
-//            crashes.append(contentsOf: crashDiagnostics)
-//            log += "\n💥 CRASHES DETECTED: \(crashDiagnostics.count)\n"
-//
-//            for (index, crash) in crashDiagnostics.enumerated() {
-//                log += "\n🔍 Crash #\(index + 1) Details:\n"
-//                log += "   • Exception Type: \(crash.exceptionType?.description ?? "Unknown")\n"
-//                log += "   • Exception Code: \(crash.exceptionCode?.description ?? "Unknown")\n"
-//                log += "   • Signal: \(crash.signal?.description ?? "Unknown")\n"
-//                log += "   • Termination Reason: \(crash.terminationReason ?? "Unknown")\n"
-//                log += "   • Virtual Memory: \(crash.virtualMemoryRegionInfo ?? "Unknown")\n"
-//
-//                let appVersion = crash.applicationVersion
-//                log += "   • App Version: \(appVersion)\n"
-//
-//                // Call stack analysis
-//                let callStack = crash.callStackTree
-//                log += "   • Call Stack: Available ✅\n"
-//                log += "   • Stack JSON: \(callStack.jsonRepresentation())\n"
-//
-//                onCrashDetected?(crash)
-//            }
-//        }
-//
-//        // Process Hangs
-//        if let hangDiagnostics = payload.hangDiagnostics {
-//            hangs.append(contentsOf: hangDiagnostics)
-//            log += "\n🔒 HANGS DETECTED: \(hangDiagnostics.count)\n"
-//
-//            for (index, hang) in hangDiagnostics.enumerated() {
-//                log += "\n🔍 Hang #\(index + 1) Details:\n"
-//                log += "   • Duration: \(formatDuration(hang.hangDuration))\n"
-//
-//                let appVersion = hang.applicationVersion
-//                log += "   • App Version: \(appVersion)\n"
-//
-//                let callStack = hang.callStackTree
-//                log += "   • Call Stack: Available ✅\n"
-//                log += "   • Stack JSON: \(callStack.jsonRepresentation())\n"
-//
-//                onHangDetected?(hang)
-//            }
-//        }
-//
-//        // Process CPU Exceptions
-//        if let cpuExceptionDiagnostics = payload.cpuExceptionDiagnostics {
-//            cpuExceptions.append(contentsOf: cpuExceptionDiagnostics)
-//            log += "\n🔥 CPU EXCEPTIONS: \(cpuExceptionDiagnostics.count)\n"
-//
-//            for (index, exception) in cpuExceptionDiagnostics.enumerated() {
-//                log += "\n🔍 CPU Exception #\(index + 1) Details:\n"
-//                log += "   • Total CPU Time: \(formatDuration(exception.totalCPUTime))\n"
-//                log += "   • Total Sampled Time: \(formatDuration(exception.totalSampledTime))\n"
-//
-//                let callStack = exception.callStackTree
-//                log += "   • Call Stack: Available ✅\n"
-//                log += "   • Stack JSON: \(callStack.jsonRepresentation())\n"
-//            }
-//        }
-//
-//        // Process Disk Write Exceptions
-//        if let diskExceptionDiagnostics = payload.diskWriteExceptionDiagnostics {
-//            diskExceptions.append(contentsOf: diskExceptionDiagnostics)
-//            log += "\n💽 DISK EXCEPTIONS: \(diskExceptionDiagnostics.count)\n"
-//
-//            for (index, exception) in diskExceptionDiagnostics.enumerated() {
-//                log += "\n🔍 Disk Exception #\(index + 1) Details:\n"
-//                log += "   • Total Writes: \(formatMemory(exception.totalWritesCaused))\n"
-//
-//                let callStack = exception.callStackTree
-//                log += "   • Call Stack: Available ✅\n"
-//                log += "   • Stack JSON: \(callStack.jsonRepresentation())\n"
-//            }
-//        }
-//
-//        log += "\n" + String(repeating: "=", count: 50) + "\n\n"
-//        onLogUpdate?(log)
-//
-//        // Send critical alert if crashes detected
-//        if let crashes = payload.crashDiagnostics, !crashes.isEmpty {
-//            logEvent("🚨 CRITICAL: \(crashes.count) crash(es) detected! Check crash report.")
-//        }
-//    }
-//
-//    private func logDetailedPayload(_ payload: MXMetricPayload) {
-//        var log = "📦 === NEW METRIC PAYLOAD ===\n"
-//        log += "🕐 Timestamp: \(DateFormatter.detailed.string(from: Date()))\n"
-//
-//        // CPU Metrics
-//        if let cpuMetrics = payload.cpuMetrics {
-//            log += "\n🖥️ CPU METRICS:\n"
-//            log += "   • CPU Time: \(formatDuration(cpuMetrics.cumulativeCPUTime))\n"
-//            log += "   • Instructions: \(cpuMetrics.cumulativeCPUInstructions.value) \(cpuMetrics.cumulativeCPUInstructions.unit)\n"
-//        }
-//
-//        // Memory Metrics
-//        if let memoryMetrics = payload.memoryMetrics {
-//            log += "\n💾 MEMORY METRICS:\n"
-//            log += "   • Peak Usage: \(formatMemory(memoryMetrics.peakMemoryUsage))\n"
-//            log += "   • Avg Suspended: \(formatMemory(memoryMetrics.averageSuspendedMemory.averageMeasurement))\n"
-//        }
-//
-//        // Network Metrics
-//        if let networkMetrics = payload.networkTransferMetrics {
-//            log += "\n🌐 NETWORK METRICS:\n"
-//            log += "   • WiFi Down: \(formatMemory(networkMetrics.cumulativeWifiDownload))\n"
-//            log += "   • Cellular Down: \(formatMemory(networkMetrics.cumulativeCellularDownload))\n"
-//        }
-//
-//        // Application Exit Metrics (crash-related)
-//        if let exitMetrics = payload.applicationExitMetrics {
-//            log += "\n🚪 EXIT METRICS:\n"
-//            log += "   • Normal Exits: \(exitMetrics.foregroundExitData.cumulativeNormalAppExitCount)\n"
-//            log += "   • Memory Exits: \(exitMetrics.foregroundExitData.cumulativeMemoryResourceLimitExitCount)\n"
-//            log += "   • Bad Access Exits: \(exitMetrics.foregroundExitData.cumulativeBadAccessExitCount)\n"
-//            log += "   • Abnormal Exits: \(exitMetrics.foregroundExitData.cumulativeAbnormalExitCount)\n"
-//            log += "   • Illegal Instruction: \(exitMetrics.foregroundExitData.cumulativeIllegalInstructionExitCount)\n"
-//            log += "   • Watchdog Exits: \(exitMetrics.foregroundExitData.cumulativeAppWatchdogExitCount)\n"
-//        }
-//
-//        // Launch Metrics with Histograms
-//        if let launchMetrics = payload.applicationLaunchMetrics {
-//            log += "\n🚀 LAUNCH METRICS:\n"
-//            let histogram = launchMetrics.histogrammedTimeToFirstDraw
-//            log += "   • Launch Histogram: \(histogram.totalBucketCount) buckets\n"
-//
-//            let enumerator = histogram.bucketEnumerator
-//            var bucketFound = false
-//            while let bucket = enumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
-//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) launches\n"
-//                bucketFound = true
-//            }
-//            if !bucketFound {
-//                log += "     - No histogram data yet (need more app launches)\n"
-//            }
-//        }
-//
-//        // Responsiveness Metrics
-//        if let responsivenessMetrics = payload.applicationResponsivenessMetrics {
-//            log += "\n⚡ RESPONSIVENESS:\n"
-//            let hangHistogram = responsivenessMetrics.histogrammedApplicationHangTime
-//            log += "   • Hang Histogram: \(hangHistogram.totalBucketCount) buckets\n"
-//
-//            let enumerator = hangHistogram.bucketEnumerator
-//            while let bucket = enumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
-//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) hangs\n"
-//            }
-//        }
-//
-//        log += "\n" + String(repeating: "=", count: 50) + "\n\n"
-//        onLogUpdate?(log)
-//    }
-//
-//    private func formatDuration(_ measurement: Measurement<UnitDuration>) -> String {
-//        let seconds = measurement.converted(to: .seconds).value
-//        if seconds < 60 {
-//            return String(format: "%.2fs", seconds)
-//        } else if seconds < 3600 {
-//            return String(format: "%.1fm", seconds / 60)
-//        } else {
-//            return String(format: "%.1fh", seconds / 3600)
-//        }
-//    }
-//
-//    private func formatMemory(_ measurement: Measurement<UnitInformationStorage>) -> String {
-//        let bytes = measurement.converted(to: .bytes).value
-//        let formatter = ByteCountFormatter()
-//        formatter.countStyle = .memory
-//        return formatter.string(fromByteCount: Int64(bytes))
-//    }
-//
-//    deinit {
-//        MXMetricManager.shared.remove(self)
-//    }
-//}
-//
-//// MARK: - Extensions
-//extension DateFormatter {
-//    static let shortTime: DateFormatter = {
-//        let formatter = DateFormatter()
-//        formatter.timeStyle = .medium
-//        return formatter
-//    }()
-//
-//    static let detailed: DateFormatter = {
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .short
-//        formatter.timeStyle = .medium
-//        return formatter
-//    }()
-//}
-
-
 
 import Foundation
 import MetricKit
@@ -613,6 +50,7 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
             onPayloadReceived?(payload)
             logComprehensivePayload(payload)
         }
+        saveMetricsToStorage()
     }
     
     /// Diagnostic delivery (crash reports, hangs, exceptions)
@@ -624,6 +62,7 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
             onDiagnosticReceived?(payload)
             processComprehensiveDiagnosticPayload(payload)
         }
+        saveMetricsToStorage()
     }
     
     // MARK: - Public Methods
@@ -1098,6 +537,7 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
             log += "   • Cumulative Three Kilometers Accuracy Time: \(formatDuration(locationMetrics.cumulativeThreeKilometersAccuracyTime))\n"
         }
         
+        
         // Network Transfer Metrics
         if let networkMetrics = payload.networkTransferMetrics {
             log += "\n🌐 NETWORK TRANSFER METRICS:\n"
@@ -1160,6 +600,40 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
         }
         
         // App Launch Metrics
+//        if let launchMetrics = payload.applicationLaunchMetrics {
+//            log += "\n🚀 APPLICATION LAUNCH METRICS:\n"
+//            
+//            // Time to First Draw Histogram
+//            let firstDrawHistogram = launchMetrics.histogrammedTimeToFirstDraw
+//            log += "   • Time to First Draw Histogram (\(firstDrawHistogram.totalBucketCount) buckets):\n"
+//            
+//            let firstDrawEnumerator = firstDrawHistogram.bucketEnumerator
+//            var bucketFound = false
+//            while let bucket = firstDrawEnumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
+//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) launches\n"
+//                bucketFound = true
+//            }
+//            if !bucketFound {
+//                log += "     - No histogram data yet (need more app launches)\n"
+//            }
+//            
+//            // Application Resume Time Histogram
+//            let resumeHistogram = launchMetrics.histogrammedApplicationResumeTime
+//            log += "   • Application Resume Time Histogram (\(resumeHistogram.totalBucketCount) buckets):\n"
+//            
+//            let resumeEnumerator = resumeHistogram.bucketEnumerator
+//            bucketFound = false
+//            while let bucket = resumeEnumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
+//                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) resumes\n"
+//                bucketFound = true
+//            }
+//            if !bucketFound {
+//                log += "     - No resume histogram data yet\n"
+//            }
+//        }
+        
+        // Replace your existing launch metrics section with this complete version:
+
         if let launchMetrics = payload.applicationLaunchMetrics {
             log += "\n🚀 APPLICATION LAUNCH METRICS:\n"
             
@@ -1189,6 +663,20 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
             }
             if !bucketFound {
                 log += "     - No resume histogram data yet\n"
+            }
+            
+            // Extended Launch Histogram (MISSING from your code)
+            let extendedHistogram = launchMetrics.histogrammedExtendedLaunch
+            log += "   • Extended Launch Histogram (\(extendedHistogram.totalBucketCount) buckets):\n"
+            
+            let extendedEnumerator = extendedHistogram.bucketEnumerator
+            bucketFound = false
+            while let bucket = extendedEnumerator.nextObject() as? MXHistogramBucket<UnitDuration> {
+                log += "     - \(formatDuration(bucket.bucketStart)) to \(formatDuration(bucket.bucketEnd)): \(bucket.bucketCount) extended launches\n"
+                bucketFound = true
+            }
+            if !bucketFound {
+                log += "     - No extended launch data yet\n"
             }
         }
         
@@ -1316,6 +804,7 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
             analysis += "• App Version: \(crash.applicationVersion)\n"
             
             let callStackJSON = crash.callStackTree.jsonRepresentation()
+            print("Call Stack JSON Size: \(callStackJSON.count) bytes")
             if let jsonString = String(data: callStackJSON, encoding: .utf8) {
                 analysis += "• Call Stack JSON:\n\(jsonString)\n"
             }
@@ -1530,6 +1019,236 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
         return result
     }
 
+    func requestMetricKitUpdate() {
+        logEvent("📋 Requesting MetricKit update...")
+        
+        // Check if past payloads are available
+        let pastPayloads = MXMetricManager.shared.pastPayloads
+        let pastDiagnostics = MXMetricManager.shared.pastDiagnosticPayloads
+        
+        logEvent("📊 Available past payloads: \(pastPayloads.count)")
+        logEvent("🚨 Available past diagnostics: \(pastDiagnostics.count)")
+        
+        if pastPayloads.isEmpty && pastDiagnostics.isEmpty {
+            logEvent("⚠️ No payloads available yet. Reasons:")
+            logEvent("   • App needs 24+ hours of usage")
+            logEvent("   • Device needs to be plugged in OR >50% battery")
+            logEvent("   • Device should be on WiFi")
+            logEvent("   • Apple decides delivery timing")
+        }
+        
+        // Process any newly available past payloads
+        processPastPayloads()
+    }
+    
+    // Add these methods after your existing methods (around line 1200):
+
+    // MARK: - Data Persistence and Storage
+//    func saveMetricsToStorage() {
+//        let encoder = JSONEncoder()
+//        
+//        do {
+//            // Save payloads
+//            let payloadData = try encoder.encode(allPayloads.map { $0.dictionaryRepresentation() })
+//            UserDefaults.standard.set(payloadData, forKey: "SavedMetricPayloads")
+//            
+//            // Save diagnostic summary (can't encode MXDiagnosticPayload directly)
+//            let diagnosticSummary = [
+//                "crashCount": crashes.count,
+//                "hangCount": hangs.count,
+//                "cpuExceptionCount": cpuExceptions.count,
+//                "diskExceptionCount": diskExceptions.count,
+//                "lastUpdateTime": Date().timeIntervalSince1970
+//            ]
+//            let diagnosticData = try encoder.encode(diagnosticSummary)
+//            UserDefaults.standard.set(diagnosticData, forKey: "SavedDiagnosticSummary")
+//            
+//            logEvent("💾 Metrics data saved to storage")
+//        } catch {
+//            logEvent("❌ Failed to save metrics: \(error)")
+//        }
+//    }
+//
+//    func loadMetricsFromStorage() {
+//        let decoder = JSONDecoder()
+//        
+//        // Load diagnostic summary
+//        if let diagnosticData = UserDefaults.standard.data(forKey: "SavedDiagnosticSummary") {
+//            do {
+//                let diagnosticSummary = try decoder.decode([String: Any].self, from: diagnosticData)
+//                logEvent("📱 Loaded diagnostic summary from storage")
+//            } catch {
+//                logEvent("❌ Failed to load diagnostic summary: \(error)")
+//            }
+//        }
+//    }
+    
+    // ...existing code...
+
+    // Diagnostic summary struct
+    private struct DiagnosticSummary: Codable {
+        let crashCount: Int
+        let hangCount: Int
+        let cpuExceptionCount: Int
+        let diskExceptionCount: Int
+        let lastUpdateTime: Double
+    }
+
+    // Save metrics to storage
+//    func saveMetricsToStorage() {
+//        // Save payloads as JSON Data array
+//        let payloadsDataArray = allPayloads.map { $0.jsonRepresentation() }
+//        UserDefaults.standard.set(payloadsDataArray, forKey: "SavedMetricPayloads")
+//        
+//        // Save diagnostic summary
+//        let summary = DiagnosticSummary(
+//            crashCount: crashes.count,
+//            hangCount: hangs.count,
+//            cpuExceptionCount: cpuExceptions.count,
+//            diskExceptionCount: diskExceptions.count,
+//            lastUpdateTime: Date().timeIntervalSince1970
+//        )
+//        if let summaryData = try? JSONEncoder().encode(summary) {
+//            UserDefaults.standard.set(summaryData, forKey: "SavedDiagnosticSummary")
+//        }
+//        
+//        logEvent("💾 Metrics data saved to storage")
+//    }
+    
+    func saveMetricsToStorage() {
+        // Save diagnostic summary only (not the complex objects)
+        let summary = DiagnosticSummary(
+            crashCount: crashes.count,
+            hangCount: hangs.count,
+            cpuExceptionCount: cpuExceptions.count,
+            diskExceptionCount: diskExceptions.count,
+            lastUpdateTime: Date().timeIntervalSince1970
+        )
+        
+        if let summaryData = try? JSONEncoder().encode(summary) {
+            UserDefaults.standard.set(summaryData, forKey: "SavedDiagnosticSummary")
+            logEvent("💾 Metrics data saved to storage")
+        }
+    }
+    
+
+    // Load metrics from storage
+//    func loadMetricsFromStorage() {
+//        // Load diagnostic summary
+//        if let summaryData = UserDefaults.standard.data(forKey: "SavedDiagnosticSummary"),
+//           let summary = try? JSONDecoder().decode(DiagnosticSummary.self, from: summaryData) {
+//            logEvent("📱 Loaded diagnostic summary from storage: Crashes \(summary.crashCount), Hangs \(summary.hangCount)")
+//        }
+//        
+//        // Load payloads (optional: implement if you want to restore them)
+//        if let payloadsDataArray = UserDefaults.standard.array(forKey: "SavedMetricPayloads") as? [Data] {
+//            logEvent("📦 Loaded \(payloadsDataArray.count) payloads from storage")
+//            // You can parse these back into MXMetricPayload if needed (not shown here)
+//        }
+//    }
+    func loadMetricsFromStorage() {
+        if let summaryData = UserDefaults.standard.data(forKey: "SavedDiagnosticSummary"),
+           let summary = try? JSONDecoder().decode(DiagnosticSummary.self, from: summaryData) {
+            logEvent("📱 Loaded diagnostic summary: Crashes \(summary.crashCount), Hangs \(summary.hangCount)")
+        }
+    }
+
+    // ...existing code...
+
+    func clearAllStoredData() {
+        UserDefaults.standard.removeObject(forKey: "SavedMetricPayloads")
+        UserDefaults.standard.removeObject(forKey: "SavedDiagnosticSummary")
+        
+        // Clear in-memory data
+        allPayloads.removeAll()
+        allDiagnostics.removeAll()
+        crashes.removeAll()
+        hangs.removeAll()
+        cpuExceptions.removeAll()
+        diskExceptions.removeAll()
+        launchDiagnostics.removeAll()
+        
+        totalPayloadsReceived = 0
+        totalDiagnosticsReceived = 0
+        
+        logEvent("🧹 All stored metrics data cleared")
+    }
+
+    // MARK: - Chart Data Providers
+    func getMemoryUsageHistory() -> [MemoryDataPoint] {
+        var memoryHistory: [MemoryDataPoint] = []
+        
+        for (index, payload) in allPayloads.enumerated() {
+            if let memoryMetrics = payload.memoryMetrics {
+                let timestamp = Calendar.current.date(byAdding: .hour, value: -index, to: Date()) ?? Date()
+                let memoryMB = memoryMetrics.peakMemoryUsage.converted(to: .megabytes).value
+                
+                memoryHistory.append(MemoryDataPoint(
+                    timestamp: timestamp,
+                    memoryUsage: memoryMB,
+                    type: "Peak Memory"
+                ))
+            }
+        }
+        
+        return memoryHistory.sorted { $0.timestamp < $1.timestamp }
+    }
+
+    func getNetworkUsageData() -> [NetworkDataPoint] {
+        guard let lastPayload = allPayloads.last,
+              let networkMetrics = lastPayload.networkTransferMetrics else {
+            return []
+        }
+        
+        let wifiUpload = networkMetrics.cumulativeWifiUpload.converted(to: .megabytes).value
+        let wifiDownload = networkMetrics.cumulativeWifiDownload.converted(to: .megabytes).value
+        let cellularUpload = networkMetrics.cumulativeCellularUpload.converted(to: .megabytes).value
+        let cellularDownload = networkMetrics.cumulativeCellularDownload.converted(to: .megabytes).value
+        
+        return [
+            NetworkDataPoint(
+                type: "WiFi",
+                upload: wifiUpload,
+                download: wifiDownload,
+                total: wifiUpload + wifiDownload
+            ),
+            NetworkDataPoint(
+                type: "Cellular",
+                upload: cellularUpload,
+                download: cellularDownload,
+                total: cellularUpload + cellularDownload
+            )
+        ]
+    }
+
+    func getHistogramDataFor<T: Unit>(_ histogram: MXHistogram<T>) -> [HistogramData] {
+        var histogramData: [HistogramData] = []
+        let enumerator = histogram.bucketEnumerator
+        
+        while let bucket = enumerator.nextObject() as? MXHistogramBucket<T> {
+            let range: String
+            
+            if T.self == UnitDuration.self {
+                let startDuration = bucket.bucketStart as! Measurement<UnitDuration>
+                let endDuration = bucket.bucketEnd as! Measurement<UnitDuration>
+                range = "\(formatDuration(startDuration))-\(formatDuration(endDuration))"
+            } else {
+                range = "\(bucket.bucketStart)-\(bucket.bucketEnd)"
+            }
+            
+            histogramData.append(HistogramData(
+                range: range,
+                count: bucket.bucketCount,
+                startValue: 0,
+                endValue: 0
+            ))
+        }
+        
+        return histogramData
+    }
+    
+    
+
     // MARK: - Enhanced Signpost Analysis
     func getSignpostAnalysis() -> String {
         var analysis = "📊 SIGNPOST METRICS ANALYSIS:\n"
@@ -1627,58 +1346,6 @@ final class MetricKitManager: NSObject, MXMetricManagerSubscriber {
         
         return result
     }
-
-//    func findCrashLocationInDevelopment() -> String {
-//        var result = "🔍 DEVELOPMENT CRASH FINDER:\n"
-//        
-//        for (index, crash) in crashes.enumerated() {
-//            result += "\n💥 Crash #\(index + 1):\n"
-//            
-//            // Look for the main thread crash
-//            let callStackJSON = crash.callStackTree.jsonRepresentation()
-//            
-//            do {
-//                if let json = try JSONSerialization.jsonObject(with: callStackJSON) as? [String: Any],
-//                   let callStacks = json["callStacks"] as? [[String: Any]] {
-//                    
-//                    for (stackIndex, callStack) in callStacks.enumerated() {
-//                        if let threadAttributed = callStack["threadAttributed"] as? Bool,
-//                           threadAttributed == true {
-//                            
-//                            result += "🎯 MAIN THREAD CRASH (Stack #\(stackIndex + 1)):\n"
-//                            
-//                            if let rootFrames = callStack["callStackRootFrames"] as? [[String: Any]] {
-//                                for frame in rootFrames {
-//                                    if let binaryName = frame["binaryName"] as? String {
-//                                        if binaryName.contains("swift") {
-//                                            result += "• ✅ Swift Runtime Crash\n"
-//                                            result += "• 💡 Likely: Array bounds, force unwrap, nil access\n"
-//                                            result += "• 🔍 Check your simulateCrash() function\n"
-//                                            
-//                                            if let offset = frame["offsetIntoBinaryTextSegment"] as? Int64 {
-//                                                result += "• Offset: \(offset) (for symbolication)\n"
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            } catch {
-//                result += "❌ Error: \(error)\n"
-//            }
-//        }
-//        
-//        // Add crash location hint
-//        result += "\n🎯 YOUR CRASH LOCATION:\n"
-//        result += "• File: MetricManager.swift\n"
-//        result += "• Function: simulateCrash()\n"
-//        result += "• Line: let _ = array[10]  // ← THIS LINE!\n"
-//        result += "• Reason: Array index out of bounds\n"
-//        
-//        return result
-//    }
     
     
     

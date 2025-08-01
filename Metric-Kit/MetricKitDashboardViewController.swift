@@ -1,158 +1,3 @@
-//import UIKit
-//
-//class MetricKitDashboardViewController: UIViewController {
-//    
-//    private let scrollView = UIScrollView()
-//    private let contentView = UIView()
-//    
-//    private let titleLabel: UILabel = {
-//        let label = UILabel()
-//        label.text = "📊 MetricKit Dashboard"
-//        label.font = UIFont.boldSystemFont(ofSize: 24)
-//        label.textAlignment = .center
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        return label
-//    }()
-//    
-//    private let summaryLabel: UILabel = {
-//        let label = UILabel()
-//        label.numberOfLines = 0
-//        label.font = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
-//        label.backgroundColor = UIColor.systemGray6
-//        label.layer.cornerRadius = 8
-//        label.translatesAutoresizingMaskIntoConstraints = false
-//        return label
-//    }()
-//    
-//    private let logTextView: UITextView = {
-//        let tv = UITextView()
-//        tv.isEditable = false
-//        tv.font = UIFont.monospacedSystemFont(ofSize: 12, weight: .regular)
-//        tv.backgroundColor = UIColor(white: 0.05, alpha: 1)
-//        tv.textColor = .systemGreen
-//        tv.layer.cornerRadius = 8
-//        tv.translatesAutoresizingMaskIntoConstraints = false
-//        return tv
-//    }()
-//    
-//    private let clearButton: UIButton = {
-//        let button = UIButton(type: .system)
-//        button.setTitle("Clear Logs", for: .normal)
-//        button.backgroundColor = .systemRed
-//        button.setTitleColor(.white, for: .normal)
-//        button.layer.cornerRadius = 8
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        return button
-//    }()
-//    
-//    private let exportButton: UIButton = {
-//        let button = UIButton(type: .system)
-//        button.setTitle("Export Data", for: .normal)
-//        button.backgroundColor = .systemBlue
-//        button.setTitleColor(.white, for: .normal)
-//        button.layer.cornerRadius = 8
-//        button.translatesAutoresizingMaskIntoConstraints = false
-//        return button
-//    }()
-//    
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-//        setupUI()
-//        setupMetricKitObservers()
-//        updateSummary()
-//    }
-//    
-//    private func setupUI() {
-//        view.backgroundColor = .systemBackground
-//        
-//        view.addSubview(scrollView)
-//        scrollView.addSubview(contentView)
-//        
-//        contentView.addSubview(titleLabel)
-//        contentView.addSubview(summaryLabel)
-//        contentView.addSubview(clearButton)
-//        contentView.addSubview(exportButton)
-//        contentView.addSubview(logTextView)
-//        
-//        scrollView.translatesAutoresizingMaskIntoConstraints = false
-//        contentView.translatesAutoresizingMaskIntoConstraints = false
-//        
-//        NSLayoutConstraint.activate([
-//            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-//            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-//            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-//            
-//            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-//            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-//            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-//            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-//            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-//            
-//            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-//            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-//            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-//            
-//            summaryLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-//            summaryLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-//            summaryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-//            
-//            clearButton.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 20),
-//            clearButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-//            clearButton.widthAnchor.constraint(equalToConstant: 120),
-//            clearButton.heightAnchor.constraint(equalToConstant: 44),
-//            
-//            exportButton.topAnchor.constraint(equalTo: summaryLabel.bottomAnchor, constant: 20),
-//            exportButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-//            exportButton.widthAnchor.constraint(equalToConstant: 120),
-//            exportButton.heightAnchor.constraint(equalToConstant: 44),
-//            
-//            logTextView.topAnchor.constraint(equalTo: clearButton.bottomAnchor, constant: 20),
-//            logTextView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-//            logTextView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-//            logTextView.heightAnchor.constraint(equalToConstant: 400),
-//            logTextView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20)
-//        ])
-//        
-//        clearButton.addTarget(self, action: #selector(clearLogs), for: .touchUpInside)
-//        exportButton.addTarget(self, action: #selector(exportData), for: .touchUpInside)
-//    }
-//    
-//    private func setupMetricKitObservers() {
-//        MetricKitManager.shared.onLogUpdate = { [weak self] logMessage in
-//            DispatchQueue.main.async {
-//                self?.logTextView.text += logMessage
-//                self?.scrollToBottom()
-//            }
-//        }
-//        
-//        MetricKitManager.shared.onPayloadReceived = { [weak self] _ in
-//            DispatchQueue.main.async {
-//                self?.updateSummary()
-//            }
-//        }
-//    }
-//    
-//    private func updateSummary() {
-//        summaryLabel.text = MetricKitManager.shared.getMetricsSummary()
-//    }
-//    
-//    private func scrollToBottom() {
-//        let range = NSRange(location: logTextView.text.count - 1, length: 1)
-//        logTextView.scrollRangeToVisible(range)
-//    }
-//    
-//    @objc private func clearLogs() {
-//        logTextView.text = ""
-//        MetricKitManager.shared.clearLogs()
-//    }
-//    
-//    @objc private func exportData() {
-//        let activityVC = UIActivityViewController(activityItems: [logTextView.text ?? ""], applicationActivities: nil)
-//        present(activityVC, animated: true)
-//    }
-//}
-
 import UIKit
 
 class MetricKitDashboardViewController: UIViewController {
@@ -327,6 +172,16 @@ class MetricKitDashboardViewController: UIViewController {
         return button
     }()
     
+    private let requestButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("📥 Request Metrics", for: .normal)
+        button.backgroundColor = .systemGreen
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -355,6 +210,7 @@ class MetricKitDashboardViewController: UIViewController {
         analysisStackView.addArrangedSubview(metadataButton)
         analysisStackView.addArrangedSubview(histogramButton)
         analysisStackView.addArrangedSubview(crashFinderButton)
+        analysisStackView.addArrangedSubview(requestButton)
         
         
         simulationStackView.addArrangedSubview(simulateCrashButton)
@@ -434,6 +290,7 @@ class MetricKitDashboardViewController: UIViewController {
         metadataButton.addTarget(self, action: #selector(showMetadataReport), for: .touchUpInside)
         histogramButton.addTarget(self, action: #selector(showHistogramAnalysis), for: .touchUpInside)
         crashFinderButton.addTarget(self, action: #selector(showCrashFinder), for: .touchUpInside)
+        requestButton.addTarget(self, action: #selector(showRequestReport), for: .touchUpInside)
     }
     
     private func setupMetricKitObservers() {
@@ -565,6 +422,11 @@ class MetricKitDashboardViewController: UIViewController {
     @objc private func showCrashFinder() {
         let analysis = MetricKitManager.shared.findCrashLocationInDevelopment()
         showAnalysisReport(title: "🔍 Crash Location Finder", content: analysis)
+    }
+    
+    @objc private func showRequestReport() {
+        MetricKitManager.shared.requestMetricKitUpdate()
+        //showAnalysisReport(title: "📥 Request Metrics", content: "Requested a MetricKit update.\nCheck logs for more details.")
     }
 
     private func showAnalysisReport(title: String, content: String) {

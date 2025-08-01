@@ -56,11 +56,28 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
+//    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+//        guard let windowScene = (scene as? UIWindowScene) else { return }
+//        
+//        window = UIWindow(windowScene: windowScene)
+//        window?.rootViewController = MainTabBarController()
+//        window?.makeKeyAndVisible()
+//    }
+    
+    // Update your window setup:
+
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = MainTabBarController()
+        
+        // Create the main tab bar controller with advanced dashboard
+        let mainTabBarController = MainTabBarController()
+        
+        window?.rootViewController = mainTabBarController
         window?.makeKeyAndVisible()
+        
+        // Start MetricKit immediately
+        _ = MetricKitManager.shared
     }
 }

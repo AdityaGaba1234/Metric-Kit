@@ -5,33 +5,63 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
-        
-        // Initialize MetricKit Manager
-        _ = MetricKitManager.shared
-        MetricKitManager.shared.logEvent("🏁 Complex MetricKit Test App Started")
+        customizeAppearance()
     }
     
     private func setupTabs() {
-        // 1. MetricKit Dashboard
-        let dashboardVC = MetricKitDashboardViewController()
-        dashboardVC.tabBarItem = UITabBarItem(title: "Dashboard", image: UIImage(systemName: "chart.bar"), tag: 0)
+        // Advanced Dashboard
+        let advancedDashboard = AdvancedDashboardViewController()
+        let advancedNav = UINavigationController(rootViewController: advancedDashboard)
+        advancedNav.tabBarItem = UITabBarItem(
+            title: "Dashboard",
+            image: UIImage(systemName: "chart.line.uptrend.xyaxis"),
+            selectedImage: UIImage(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+        )
         
-        // 2. Quiz/MCQ Screen
-        let quizVC = QuizViewController()
-        quizVC.tabBarItem = UITabBarItem(title: "Quiz", image: UIImage(systemName: "questionmark.circle"), tag: 1)
+        // Detailed Analytics
+        let analyticsVC = DetailedAnalyticsViewController()
+        let analyticsNav = UINavigationController(rootViewController: analyticsVC)
+        analyticsNav.tabBarItem = UITabBarItem(
+            title: "Analytics",
+            image: UIImage(systemName: "chart.bar.xaxis"),
+            selectedImage: UIImage(systemName: "chart.bar.xaxis.fill")
+        )
         
-        // 3. Video Player
-        let videoVC = VideoPlayerViewController()
-        videoVC.tabBarItem = UITabBarItem(title: "Video", image: UIImage(systemName: "play.circle"), tag: 2)
+        // Call Stack Analyzer
+        let callStackVC = CallStackAnalyzerViewController()
+        let callStackNav = UINavigationController(rootViewController: callStackVC)
+        callStackNav.tabBarItem = UITabBarItem(
+            title: "Call Stacks",
+            image: UIImage(systemName: "list.bullet.rectangle"),
+            selectedImage: UIImage(systemName: "list.bullet.rectangle.fill")
+        )
         
-        // 4. Heavy Tasks
-        let heavyTasksVC = HeavyTasksViewController()
-        heavyTasksVC.tabBarItem = UITabBarItem(title: "Tasks", image: UIImage(systemName: "gear"), tag: 3)
-        
-        // 5. Settings
+        // Settings & Export
         let settingsVC = SettingsViewController()
-        settingsVC.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 4)
+        let settingsNav = UINavigationController(rootViewController: settingsVC)
+        settingsNav.tabBarItem = UITabBarItem(
+            title: "Settings",
+            image: UIImage(systemName: "gear"),
+            selectedImage: UIImage(systemName: "gear.fill")
+        )
         
-        viewControllers = [dashboardVC, quizVC, videoVC, heavyTasksVC, settingsVC]
+        viewControllers = [advancedNav, analyticsNav, callStackNav, settingsNav]
+    }
+    
+    private func customizeAppearance() {
+        // Tab bar appearance
+        tabBar.backgroundColor = UIColor.systemBackground
+        tabBar.tintColor = UIColor.systemBlue
+        tabBar.unselectedItemTintColor = UIColor.systemGray
+        
+        // Navigation bar appearance
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.systemBackground
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 }
